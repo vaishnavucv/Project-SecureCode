@@ -1,0 +1,97 @@
+# Secure File Upload Application Configuration
+# Following OWASP best practices for secure configuration
+
+# Server Configuration
+server:
+  port: 3000
+  host: "0.0.0.0"
+  environment: "development"  # development, staging, production
+
+# Security Configuration
+security:
+  # File Upload Security
+  max_file_size_mb: 10
+  allowed_extensions:
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".gif"
+    - ".pdf"
+    - ".doc"
+    - ".docx"
+    - ".txt"
+    - ".csv"
+    - ".xlsx"
+  
+  # File Storage Security
+  storage_path: "./uploads"
+  storage_permissions: "644"  # Read/write for owner, read for group/others
+  storage_outside_webroot: true
+  
+  # Authentication & Authorization
+  session_secret: "your-super-secret-session-key-change-in-production"
+  jwt_secret: "your-super-secret-jwt-key-change-in-production"
+  session_timeout_minutes: 30
+  
+  # Rate Limiting
+  rate_limit:
+    window_ms: 900000  # 15 minutes
+    max_requests: 100  # per window per IP
+    upload_window_ms: 300000  # 5 minutes
+    max_uploads: 10  # per window per IP
+
+# Logging Configuration
+logging:
+  level: "info"  # error, warn, info, debug
+  log_path: "./logs"
+  max_file_size: "10m"
+  max_files: 5
+  date_pattern: "YYYY-MM-DD"
+  
+  # Security logging - avoid logging sensitive information
+  log_uploads: true
+  log_downloads: true
+  log_deletions: true
+  log_validation_failures: true
+  # DO NOT log: file contents, full file paths, user passwords
+
+# Database Configuration
+database:
+  type: "sqlite"  # sqlite, postgresql, mysql
+  path: "./data/file_metadata.db"
+  # For production, use environment variables for credentials
+
+# CORS Configuration
+cors:
+  origin: ["http://localhost:3000", "http://localhost:3001"]
+  credentials: true
+  methods: ["GET", "POST", "DELETE"]
+  allowed_headers: ["Content-Type", "Authorization"]
+
+# File Processing
+file_processing:
+  # Virus scanning (if available)
+  enable_virus_scan: false
+  virus_scan_command: "clamscan"
+  
+  # File content validation
+  validate_file_content: true
+  check_mime_type: true
+  check_file_signature: true
+  
+  # Generate thumbnails for images
+  generate_thumbnails: false
+  thumbnail_size: "200x200"
+
+# Monitoring & Health Checks
+monitoring:
+  enable_health_check: true
+  health_check_path: "/health"
+  metrics_path: "/metrics"
+  
+# Backup Configuration
+backup:
+  enable_auto_backup: false
+  backup_interval_hours: 24
+  backup_retention_days: 30
+  backup_path: "./backups"

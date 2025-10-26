@@ -1,0 +1,23 @@
+This is a test file for the Secure File Upload Application.
+
+You can use this file to test the upload functionality.
+
+File created: 2024-10-26
+Purpose: Testing file upload and management features
+
+The application supports various file types:
+- Images: PNG, JPG, GIF
+- Documents: PDF, DOC, DOCX
+- Text: TXT, CSV
+- Spreadsheets: XLSX
+
+Maximum file size: 10MB
+Authentication: User ID based (no password required)
+
+Valid user ID examples:
+- testuser
+- user123
+- admin_user
+- demo-user-2024
+
+Enjoy testing the secure file upload system!

@@ -1,0 +1,38 @@
+{
+  "67b0adf6-6257-48aa-9237-02efe223ba2c": {
+    "id": "67b0adf6-6257-48aa-9237-02efe223ba2c",
+    "username": "admin",
+    "email": "admin@securefileupload.com",
+    "passwordHash": "$2a$12$bqetJB.57GQqYzK/vT4Ld.BrFFZdaGL0isjuqb2bn7mAoIF7wbjO2",
+    "firstName": "System",
+    "lastName": "Administrator",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2025-10-26T20:22:15.307Z",
+    "updatedAt": "2025-10-26T20:29:36.445Z",
+    "lastLogin": "2025-10-26T20:29:36.445Z",
+    "loginAttempts": 0,
+    "lockedUntil": null,
+    "emailVerified": true,
+    "twoFactorEnabled": false,
+    "metadata": "\"{}\""
+  },
+  "7436bd26-37b5-4d1a-b1c6-c4a9e62d035f": {
+    "id": "7436bd26-37b5-4d1a-b1c6-c4a9e62d035f",
+    "username": "user1",
+    "email": "user1@gmail.com",
+    "passwordHash": "$2a$12$mTfW/t/Z7thyQhQ6xuzj8ummBqpcCCUzTicZakCkvTZONqOy9t.MW",
+    "firstName": "test",
+    "lastName": "1",
+    "role": "user",
+    "status": "pending",
+    "createdAt": "2025-10-26T20:29:16.618Z",
+    "updatedAt": "2025-10-26T20:29:16.618Z",
+    "lastLogin": null,
+    "loginAttempts": 0,
+    "lockedUntil": null,
+    "emailVerified": false,
+    "twoFactorEnabled": false,
+    "metadata": "{}"
+  }
+}
