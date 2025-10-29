@@ -52,19 +52,9 @@ This guide provides comprehensive instructions for deploying the Secure File Upl
 # Clone the repository
 git clone <repository-url>
 cd Project_Secure_Coding
-
-# Create environment file
-cat > .env << EOF
-NODE_ENV=production
-PORT=3000
-SESSION_SECRET=your-super-secret-session-key-change-this
-JWT_SECRET=your-super-secret-jwt-key-change-this
-REDIS_PASSWORD=your-secure-redis-password
-MAX_FILE_SIZE_MB=10
-STORAGE_PATH=/app/uploads
-LOG_PATH=/app/logs
-EOF
 ```
+
+**Copy the .env.example file to .env and update all environment variables**
 
 #### 2. Configure Docker Compose
 
@@ -105,9 +95,19 @@ curl -H "X-User-ID: test" https://your-domain.com/api/stats
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# Install curl
+sudo apt install curl -y
+
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+# in lieu of restarting the shell
+\. "$HOME/.nvm/nvm.sh"
+# Download and install Node.js:
+nvm install 22
+# Verify the Node.js version:
+node -v # Should print "v24.11.0".
+# Verify npm version:
+npm -v # Should print "11.6.1".
 
 # Install PM2 for process management
 sudo npm install -g pm2
