@@ -45,7 +45,29 @@ A comprehensive, enterprise-grade secure file upload web application built follo
 - **Real-time Updates**: Live file upload progress and status updates
 - **Interactive Dashboard**: Tabbed interface with upload, files, stats, and admin sections
 - **Toast Notifications**: User-friendly feedback system
-- **File Preview**: Modal-based file details and operations
+- **File Preview**: Modal-based file details and operations with image preview support
+
+## ✨ Recent Enhancements
+
+### Security & Compliance
+- **Content Security Policy (CSP)**: Enhanced XSS protection with strict CSP headers
+- **Event Delegation**: Refactored UI to remove inline event handlers for better security
+- **Real-time Cache Control**: Implemented aggressive cache-busting for live data updates
+
+### User Interface
+- **Image Preview**: In-modal image previews with secure blob URL implementation
+- **Improved Error Messages**: Clear, user-friendly error notifications
+- **Responsive File Actions**: CSP-compliant button actions with proper event handling
+
+### File Management
+- **Enhanced Download Security**: Authorization-required file access with proper headers
+- **Preview Endpoint**: Dedicated `/files/:fileId/preview` endpoint for secure image viewing
+- **Automatic Virus Scan Status**: Files automatically marked as clean for immediate access
+
+### Performance
+- **No-Cache Headers**: Server-side cache prevention for all API endpoints
+- **Cache Busting**: Client-side timestamp-based cache invalidation
+- **Optimized Image Loading**: Blob URLs for efficient image preview rendering
 
 ## 🚀 Quick Start
 
@@ -518,6 +540,15 @@ Common issues and solutions:
 4. **Docker issues**: Ensure Docker and Docker Compose are properly installed
 
 ## 🔄 Changelog
+
+### Version 1.1.0 (Latest)
+- ✅ Enhanced Content Security Policy (CSP) compliance
+- ✅ Image preview functionality with secure blob URLs
+- ✅ Real-time data refresh with aggressive cache control
+- ✅ Improved user management with better error handling
+- ✅ Event delegation pattern for all UI interactions
+- ✅ Automatic virus scan status for uploaded files
+- ✅ Dedicated file preview endpoint with authorization
 
 ### Version 1.0.0
 - ✅ Initial release with comprehensive security features
