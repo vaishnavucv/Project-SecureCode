@@ -755,6 +755,74 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
+/* File Preview in Modal */
+.file-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    min-height: 150px;
+}
+
+.file-preview-image {
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease;
+}
+
+.file-preview-image:hover {
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.clean {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.infected {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+.status-badge.deleted {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.status-badge.quarantined {
+    background: #fed7aa;
+    color: #92400e;
+}
+
+/* Wider modal for image preview */
+.modal-content:has(.file-preview) {
+    max-width: 650px;
+}
+
 /* Toast Notifications */
 .toast-container {
     position: fixed;

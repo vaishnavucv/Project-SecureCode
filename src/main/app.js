@@ -100,6 +100,17 @@ class SecureFileUploadApp {
       next();
     });
 
+    // Add no-cache headers for all API responses to ensure real-time data
+    this.app.use('/api', (req, res, next) => {
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      });
+      next();
+    });
+
     // Rate limiting
     this.setupRateLimiting();
 

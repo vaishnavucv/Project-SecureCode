@@ -16,6 +16,8 @@ class SecureFileUploadApp {
         this.currentPage = 0;
         this.filesPerPage = 10;
         this.usersPerPage = 10;
+        this.currentModalFileId = null;
+        this.currentModalFileName = null;
         
         this.init();
     }
@@ -98,6 +100,72 @@ class SecureFileUploadApp {
             this.loadAdminStats();
         });
 
+        // User management actions - using event delegation
+        document.getElementById('users-list').addEventListener('click', (e) => {
+            const target = e.target.closest('button[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+            const userId = target.dataset.userId;
+
+            if (action === 'approve') {
+                this.approveUser(userId);
+            } else if (action === 'reject') {
+                this.rejectUser(userId);
+            } else if (action === 'suspend') {
+                this.suspendUser(userId);
+            }
+        });
+
+        // User pagination - using event delegation
+        document.getElementById('users-pagination').addEventListener('click', (e) => {
+            const target = e.target.closest('button[data-page]');
+            if (!target) return;
+
+            const page = parseInt(target.dataset.page);
+            this.changeUsersPage(page);
+        });
+
+        // File management actions - using event delegation
+        document.getElementById('files-list').addEventListener('click', (e) => {
+            const target = e.target.closest('button[data-file-action]');
+            if (!target) return;
+
+            const action = target.dataset.fileAction;
+            const fileId = target.dataset.fileId;
+            const fileName = target.dataset.fileName;
+
+            if (action === 'download') {
+                this.downloadFile(fileId);
+            } else if (action === 'view') {
+                this.viewFile(fileId);
+            } else if (action === 'delete') {
+                this.deleteFile(fileId, fileName);
+            }
+        });
+
+        // File pagination - using event delegation
+        document.getElementById('files-pagination').addEventListener('click', (e) => {
+            const target = e.target.closest('button[data-file-page]');
+            if (!target) return;
+
+            const page = parseInt(target.dataset.filePage);
+            this.changePage(page);
+        });
+
+        // Upload results actions - using event delegation
+        document.getElementById('upload-results').addEventListener('click', (e) => {
+            const target = e.target.closest('button[data-file-action]');
+            if (!target) return;
+
+            const action = target.dataset.fileAction;
+            const fileId = target.dataset.fileId;
+
+            if (action === 'view') {
+                this.viewFile(fileId);
+            }
+        });
+
         // Modal
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -108,6 +176,21 @@ class SecureFileUploadApp {
         // Close modal on outside click
         document.getElementById('file-modal').addEventListener('click', (e) => {
             if (e.target.id === 'file-modal') {
+                this.closeModal();
+            }
+        });
+
+        // Modal action buttons
+        document.getElementById('download-file').addEventListener('click', () => {
+            if (this.currentModalFileId) {
+                this.downloadFile(this.currentModalFileId);
+                this.closeModal();
+            }
+        });
+
+        document.getElementById('delete-file').addEventListener('click', () => {
+            if (this.currentModalFileId) {
+                this.deleteFile(this.currentModalFileId, this.currentModalFileName);
                 this.closeModal();
             }
         });
@@ -529,7 +612,7 @@ class SecureFileUploadApp {
                     <strong>${fileName}</strong> uploaded successfully
                     <br><small>Size: ${this.formatFileSize(result.data.fileSize)}</small>
                 </div>
-                <button class="btn btn-sm btn-secondary" onclick="app.viewFile('${result.data.fileId}')">
+                <button class="btn btn-sm btn-secondary" data-file-action="view" data-file-id="${result.data.fileId}">
                     View Details
                 </button>
             `;
@@ -613,13 +696,13 @@ class SecureFileUploadApp {
                     </div>
                 </div>
                 <div class="file-actions">
-                    <button class="btn btn-sm btn-primary" onclick="app.downloadFile('${file.id}')">
+                    <button class="btn btn-sm btn-primary" data-file-action="download" data-file-id="${file.id}">
                         📥 Download
                     </button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.viewFile('${file.id}')">
+                    <button class="btn btn-sm btn-secondary" data-file-action="view" data-file-id="${file.id}">
                         👁️ View
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="app.deleteFile('${file.id}', '${this.escapeHtml(file.originalFilename)}')">
+                    <button class="btn btn-sm btn-danger" data-file-action="delete" data-file-id="${file.id}" data-file-name="${this.escapeHtml(file.originalFilename)}">
                         🗑️ Delete
                     </button>
                 </div>
@@ -640,7 +723,7 @@ class SecureFileUploadApp {
 
         // Previous button
         paginationHTML += `
-            <button ${this.currentPage === 0 ? 'disabled' : ''} onclick="app.changePage(${this.currentPage - 1})">
+            <button ${this.currentPage === 0 ? 'disabled' : ''} data-file-page="${this.currentPage - 1}">
                 ← Previous
             </button>
         `;
@@ -648,7 +731,7 @@ class SecureFileUploadApp {
         // Page numbers
         for (let i = 0; i < totalPages; i++) {
             paginationHTML += `
-                <button class="${i === this.currentPage ? 'active' : ''}" onclick="app.changePage(${i})">
+                <button class="${i === this.currentPage ? 'active' : ''}" data-file-page="${i}">
                     ${i + 1}
                 </button>
             `;
@@ -656,7 +739,7 @@ class SecureFileUploadApp {
 
         // Next button
         paginationHTML += `
-            <button ${this.currentPage >= totalPages - 1 ? 'disabled' : ''} onclick="app.changePage(${this.currentPage + 1})">
+            <button ${this.currentPage >= totalPages - 1 ? 'disabled' : ''} data-file-page="${this.currentPage + 1}">
                 Next →
             </button>
         `;
@@ -714,11 +797,31 @@ class SecureFileUploadApp {
         }
     }
 
-    showFileModal(fileData) {
+    async showFileModal(fileData) {
         const modal = document.getElementById('file-modal');
         const details = document.getElementById('file-details');
 
+        // Store current file info for modal buttons
+        this.currentModalFileId = fileData.id;
+        this.currentModalFileName = fileData.originalFilename;
+
+        // Check if file is an image
+        const isImage = fileData.mimeType && fileData.mimeType.startsWith('image/');
+        
+        // Build image preview section if it's an image
+        let imagePreviewHtml = '';
+        if (isImage) {
+            imagePreviewHtml = `
+                <div class="file-preview" id="image-preview-container">
+                    <div class="spinner"></div>
+                    <p>Loading preview...</p>
+                </div>
+                <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);">
+            `;
+        }
+
         details.innerHTML = `
+            ${imagePreviewHtml}
             <div style="display: grid; gap: 1rem;">
                 <div><strong>Filename:</strong> ${this.escapeHtml(fileData.originalFilename)}</div>
                 <div><strong>Size:</strong> ${this.formatFileSize(fileData.fileSize)}</div>
@@ -726,24 +829,61 @@ class SecureFileUploadApp {
                 <div><strong>Uploaded:</strong> ${this.formatDate(fileData.uploadTimestamp)}</div>
                 <div><strong>Last Accessed:</strong> ${fileData.lastAccessed ? this.formatDate(fileData.lastAccessed) : 'Never'}</div>
                 <div><strong>Access Count:</strong> ${fileData.accessCount}</div>
-                <div><strong>Status:</strong> ${fileData.status}</div>
-                <div><strong>Virus Scan:</strong> ${fileData.virusScanStatus}</div>
-                <div><strong>Checksum:</strong> <code>${fileData.checksum}</code></div>
+                <div><strong>Status:</strong> <span class="status-badge ${fileData.status}">${fileData.status}</span></div>
+                <div><strong>Virus Scan:</strong> <span class="status-badge ${fileData.virusScanStatus}">${fileData.virusScanStatus}</span></div>
+                <div><strong>Checksum:</strong> <code style="font-size: 0.75rem; word-break: break-all;">${fileData.checksum}</code></div>
             </div>
         `;
 
-        // Update modal buttons
-        document.getElementById('download-file').onclick = () => {
-            this.downloadFile(fileData.id);
-            this.closeModal();
-        };
-
-        document.getElementById('delete-file').onclick = () => {
-            this.deleteFile(fileData.id, fileData.originalFilename);
-            this.closeModal();
-        };
-
         modal.classList.add('show');
+
+        // Load image preview if it's an image
+        if (isImage) {
+            this.loadImagePreview(fileData.id, fileData.originalFilename);
+        }
+    }
+
+    async loadImagePreview(fileId, filename) {
+        const container = document.getElementById('image-preview-container');
+        
+        try {
+            // Add cache-busting parameter for fresh images
+            const response = await fetch(`${this.apiBaseUrl}/files/${fileId}/preview?_t=${Date.now()}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                },
+                cache: 'no-store'
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                
+                container.innerHTML = `
+                    <img 
+                        src="${imageUrl}" 
+                        alt="${this.escapeHtml(filename)}"
+                        class="file-preview-image"
+                        style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; display: block; margin: 0 auto; background: var(--background-color);"
+                    />
+                `;
+                
+                // Clean up blob URL when modal closes
+                const modal = document.getElementById('file-modal');
+                const cleanupHandler = () => {
+                    URL.revokeObjectURL(imageUrl);
+                    modal.removeEventListener('transitionend', cleanupHandler);
+                };
+                modal.addEventListener('transitionend', cleanupHandler);
+            } else {
+                throw new Error('Failed to load preview');
+            }
+        } catch (error) {
+            console.error('Image preview error:', error);
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">📷 Preview not available</div>';
+        }
     }
 
     closeModal() {
@@ -858,15 +998,15 @@ class SecureFileUploadApp {
                 <div class="user-status ${user.status}">${user.status}</div>
                 <div class="user-actions">
                     ${user.status === 'pending' ? `
-                        <button class="btn btn-sm btn-primary" onclick="app.approveUser('${this.escapeHtml(user.id)}')">
+                        <button class="btn btn-sm btn-primary" data-action="approve" data-user-id="${this.escapeHtml(user.id)}">
                             ✅ Approve
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="app.rejectUser('${this.escapeHtml(user.id)}')">
+                        <button class="btn btn-sm btn-danger" data-action="reject" data-user-id="${this.escapeHtml(user.id)}">
                             ❌ Reject
                         </button>
                     ` : ''}
                     ${user.status === 'active' ? `
-                        <button class="btn btn-sm btn-danger" onclick="app.suspendUser('${this.escapeHtml(user.id)}')">
+                        <button class="btn btn-sm btn-danger" data-action="suspend" data-user-id="${this.escapeHtml(user.id)}">
                             ⏸️ Suspend
                         </button>
                     ` : ''}
@@ -888,7 +1028,7 @@ class SecureFileUploadApp {
 
         // Previous button
         paginationHTML += `
-            <button ${this.currentPage === 0 ? 'disabled' : ''} onclick="app.changeUsersPage(${this.currentPage - 1})">
+            <button ${this.currentPage === 0 ? 'disabled' : ''} data-page="${this.currentPage - 1}">
                 ← Previous
             </button>
         `;
@@ -896,7 +1036,7 @@ class SecureFileUploadApp {
         // Page numbers
         for (let i = 0; i < totalPages; i++) {
             paginationHTML += `
-                <button class="${i === this.currentPage ? 'active' : ''}" onclick="app.changeUsersPage(${i})">
+                <button class="${i === this.currentPage ? 'active' : ''}" data-page="${i}">
                     ${i + 1}
                 </button>
             `;
@@ -904,7 +1044,7 @@ class SecureFileUploadApp {
 
         // Next button
         paginationHTML += `
-            <button ${this.currentPage >= totalPages - 1 ? 'disabled' : ''} onclick="app.changeUsersPage(${this.currentPage + 1})">
+            <button ${this.currentPage >= totalPages - 1 ? 'disabled' : ''} data-page="${this.currentPage + 1}">
                 Next →
             </button>
         `;
@@ -974,10 +1114,10 @@ class SecureFileUploadApp {
                 this.loadUsers();
                 this.loadAdminStats();
             } else {
-                this.showToast(`Failed to suspend user: ${response.error}`, 'error');
+                this.showToast(response.error || 'Failed to suspend user', 'error');
             }
         } catch (error) {
-            this.showToast(`Failed to suspend user: ${error.message}`, 'error');
+            this.showToast('Network error. Please try again.', 'error');
             console.error('Suspend user error:', error);
         }
     }
@@ -1006,15 +1146,32 @@ class SecureFileUploadApp {
 
     // Utility Methods
     async apiRequest(endpoint, options = {}) {
-        const url = `${this.apiBaseUrl}${endpoint}`;
+        // Add cache-busting parameter to prevent caching
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const cacheBuster = `${separator}_t=${Date.now()}`;
+        const url = `${this.apiBaseUrl}${endpoint}${cacheBuster}`;
+        
         const defaultOptions = {
             headers: {
                 'Authorization': `Bearer ${this.authToken}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            },
+            cache: 'no-store'
+        };
+
+        // Properly merge headers to ensure Authorization header is not overwritten
+        const mergedOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...(options.headers || {})
             }
         };
 
-        const response = await fetch(url, { ...defaultOptions, ...options });
+        const response = await fetch(url, mergedOptions);
         
         if (response.status === 401) {
             this.clearAuth();

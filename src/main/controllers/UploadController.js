@@ -100,6 +100,13 @@ class UploadController {
       this.handleGetFileMetadata.bind(this)
     );
 
+    // File preview endpoint (inline display for images)
+    this.router.get('/files/:fileId/preview',
+      this.authenticateUser.bind(this),
+      this.validateFileId.bind(this),
+      this.handleFilePreview.bind(this)
+    );
+
     // Health check endpoint
     this.router.get('/health',
       this.handleHealthCheck.bind(this)
@@ -530,6 +537,84 @@ class UploadController {
         userId: req.userId,
         fileId: req.params.fileId,
         action: 'get_metadata',
+        ip: req.ip
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        code: 'INTERNAL_ERROR'
+      });
+    }
+  }
+
+  /**
+   * Handle file preview (inline display for images)
+   */
+  async handleFilePreview(req, res) {
+    try {
+      const { fileId } = req.params;
+      const { userId } = req;
+
+      this.logger.logAccessAttempt(`file_preview_${fileId}`, userId);
+
+      const result = await this.uploadService.retrieveFile(fileId, userId);
+
+      if (result.success) {
+        // Check if it's an image
+        const isImage = result.mimeType && result.mimeType.startsWith('image/');
+
+        if (!isImage) {
+          return res.status(400).json({
+            success: false,
+            error: 'Preview only available for images',
+            code: 'NOT_IMAGE'
+          });
+        }
+
+        this.logger.logFileEvent('preview', {
+          userId,
+          fileId,
+          filename: result.filename,
+          mimeType: result.mimeType,
+          ip: req.ip
+        }, true);
+
+        // Set headers for inline display
+        res.set({
+          'Content-Type': result.mimeType,
+          'Content-Length': result.fileSize,
+          'Content-Disposition': `inline; filename="${result.filename}"`,
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Content-Type-Options': 'nosniff'
+        });
+
+        res.send(result.fileBuffer);
+      } else {
+        this.logger.logFileEvent('preview', {
+          userId,
+          fileId,
+          error: result.error,
+          ip: req.ip
+        }, false);
+
+        const statusCode = result.error.includes('Unauthorized') ? 403 : 
+                          result.error.includes('not found') ? 404 : 400;
+
+        res.status(statusCode).json({
+          success: false,
+          error: result.error,
+          details: result.details
+        });
+      }
+
+    } catch (error) {
+      this.logger.logError(error, {
+        userId: req.userId,
+        fileId: req.params.fileId,
+        action: 'preview',
         ip: req.ip
       });
 
